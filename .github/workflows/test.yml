@@ -1,0 +1,32 @@
+---
+name: tests
+on:
+  push:
+    branches:
+      - main
+env:
+  DATABASE_URL: mysql://root:password@localhost:3307/api_local
+jobs:
+  test:
+    name: TEST
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - name: MySQL
+        uses: shogo82148/actions-setup-mysql@v1
+        with:
+          mysql-version: "8.0"
+      - name: Start Docker Containers
+        run: docker-compose up -d
+      - name: Sleep for 120 seconds
+        uses: jakejarvis/wait-action@master
+        with:
+          time: 120s
+      - name: attempt mysql
+        run:
+          MYSQL_PWD=password mysql -h localhost --protocol=TCP --port=3307 -u root -e
+          "show databases;"
